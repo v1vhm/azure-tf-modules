@@ -23,3 +23,9 @@ variable "db_remote_state_key" {
   description = "The path for the database's remote state"
   type        = string
 }
+
+variable "custom_tags" {
+  description = "Custom tags to set on the instances in the scale set"
+  type        = map(string)
+  default     = {}
+}
