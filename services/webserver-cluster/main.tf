@@ -130,6 +130,71 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 }
 
+resource "azurerm_monitor_autoscale_setting" "vss-schedule" {
+  name                = "${var.cluster_name}-autoscale-${var.environment}"
+  enabled             = true
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  target_resource_id  = azurerm_linux_virtual_machine_scale_set.example.id
+
+  profile {
+    name = "Weekday-daytime"
+    
+    capacity {
+      default = 2
+      minimum = 2
+      maximum = 2
+    }
+
+    recurrence {
+      timezone = "GMT Standard Time"
+      days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      hours = [8]
+      minutes = [0]
+    }
+
+
+  }
+
+  profile {
+    name = "Weekday-nighttime"
+    
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 1
+    }
+
+    recurrence {
+      timezone = "GMT Standard Time"
+      days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      hours = [18]
+      minutes = [0]
+    }
+
+
+  }
+
+  profile {
+    name = "Weekend"
+    
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 1
+    }
+
+    recurrence {
+      timezone = "GMT Standard Time"
+      days = ["Saturday", "Sunday"]
+      hours = [0]
+      minutes = [0]
+    }
+
+
+  }
+}
+
 resource "azurerm_public_ip" "example" {
   name                = "${var.cluster_name}-pip-${var.environment}"
   location            = azurerm_resource_group.example.location
