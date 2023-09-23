@@ -84,14 +84,15 @@ resource "azurerm_subnet_network_security_group_association" "example" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
-  name                            = "${var.cluster_name}-vss-${var.environment}-${var.app_version}"
+  name                            = "${var.cluster_name}-vss-${var.environment}"
   resource_group_name             = azurerm_resource_group.example.name
   location                        = azurerm_resource_group.example.location
   instances                       = 1
-  sku                             = "Standard_F2"
+  sku                             = "Standard_B1s"
   admin_username                  = "adminuser"
   admin_password                  = "hCU9dPL7zxZGzfh2CG5m"
   disable_password_authentication = false
+  upgrade_mode                    = "Rolling"
   custom_data = base64encode(templatefile("${path.module}/custom-data.sh", {
     server_port = local.server_port
     db_address  = data.terraform_remote_state.database.outputs.address
@@ -105,6 +106,15 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
     sku       = "20_04-lts"
     version   = "latest"
   }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 50
+    max_unhealthy_instance_percent          = 50
+    max_unhealthy_upgraded_instance_percent = 50
+    pause_time_between_batches              = "PT60S"
+  }
+
+  health_probe_id = azurerm_lb_probe.example2.id
 
   network_interface {
     name    = "example"
@@ -127,14 +137,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   # let's ignore any changes to the number of instances
   lifecycle {
     ignore_changes        = [instances]
-    create_before_destroy = true
   }
+
 
 }
 
 resource "azurerm_monitor_autoscale_setting" "vss-schedule" {
   count               = var.enable_autoscaling ? 1 : 0
-  name                = "${var.cluster_name}-autoscale-${var.environment}-${var.app_version}"
+  name                = "${var.cluster_name}-autoscale-${var.environment}"
   enabled             = true
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -195,10 +205,6 @@ resource "azurerm_monitor_autoscale_setting" "vss-schedule" {
     }
 
 
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 

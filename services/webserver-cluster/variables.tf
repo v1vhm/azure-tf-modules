@@ -40,8 +40,3 @@ variable "server_text" {
   type        = string
   default     = "Hello, world!"
 }
-
-variable "app_version" {
-  description = "The current version of the app"
-  type        = string
-}
