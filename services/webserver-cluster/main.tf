@@ -21,6 +21,9 @@ data "terraform_remote_state" "database" {
 
 locals {
   server_port = 8080
+  tags = {
+    Name = var.cluster_name
+  }
 }
 
 # Create a resource group
@@ -72,9 +75,7 @@ resource "azurerm_network_security_group" "example" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-  tags = {
-    environment = "Production"
-  }
+  
 }
 
 resource "azurerm_subnet_network_security_group_association" "example" {
@@ -95,6 +96,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
     server_port = local.server_port
     db_address  = data.terraform_remote_state.database.outputs.address
   }))
+  tags = merge(local.tags, var.custom_tags)
 
   source_image_reference {
     publisher = "Canonical"
