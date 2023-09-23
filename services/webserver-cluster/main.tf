@@ -84,7 +84,7 @@ resource "azurerm_subnet_network_security_group_association" "example" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
-  name                            = "${var.cluster_name}-vss-${var.environment}"
+  name                            = "${var.cluster_name}-vss-${var.environment}-${var.app_version}"
   resource_group_name             = azurerm_resource_group.example.name
   location                        = azurerm_resource_group.example.location
   instances                       = 1
@@ -95,6 +95,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   custom_data = base64encode(templatefile("${path.module}/custom-data.sh", {
     server_port = local.server_port
     db_address  = data.terraform_remote_state.database.outputs.address
+    server_text = var.server_text
   }))
   tags = merge(local.tags, var.custom_tags)
 
@@ -125,14 +126,15 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   # Since these can change via auto-scaling outside of Terraform,
   # let's ignore any changes to the number of instances
   lifecycle {
-    ignore_changes = [instances]
+    ignore_changes        = [instances]
+    create_before_destroy = true
   }
 
 }
 
 resource "azurerm_monitor_autoscale_setting" "vss-schedule" {
   count               = var.enable_autoscaling ? 1 : 0
-  name                = "${var.cluster_name}-autoscale-${var.environment}"
+  name                = "${var.cluster_name}-autoscale-${var.environment}-${var.app_version}"
   enabled             = true
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -180,9 +182,9 @@ resource "azurerm_monitor_autoscale_setting" "vss-schedule" {
     name = "Weekend"
     
     capacity {
-      default = 1
-      minimum = 1
-      maximum = 1
+      default = 2
+      minimum = 2
+      maximum = 2
     }
 
     recurrence {
@@ -193,6 +195,10 @@ resource "azurerm_monitor_autoscale_setting" "vss-schedule" {
     }
 
 
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

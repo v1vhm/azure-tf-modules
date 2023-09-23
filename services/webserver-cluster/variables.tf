@@ -34,3 +34,14 @@ variable "enable_autoscaling" {
   description = "If set to true, enable autoscaling"
   type        = bool
 }
+
+variable "server_text" {
+  description = "The text the web server should return"
+  type        = string
+  default     = "Hello, world!"
+}
+
+variable "app_version" {
+  description = "The current version of the app"
+  type        = string
+}
