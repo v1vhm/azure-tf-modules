@@ -29,3 +29,8 @@ variable "custom_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_autoscaling" {
+  description = "If set to true, enable autoscaling"
+  type        = bool
+}

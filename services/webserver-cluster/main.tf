@@ -131,6 +131,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 }
 
 resource "azurerm_monitor_autoscale_setting" "vss-schedule" {
+  count               = var.enable_autoscaling ? 1 : 0
   name                = "${var.cluster_name}-autoscale-${var.environment}"
   enabled             = true
   resource_group_name = azurerm_resource_group.example.name
